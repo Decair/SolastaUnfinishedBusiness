@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using SolastaUnfinishedBusiness.Api.GameExtensions;
 using SolastaUnfinishedBusiness.Behaviors;
 using SolastaUnfinishedBusiness.Builders;
 using SolastaUnfinishedBusiness.Builders.Features;
@@ -8,12 +9,12 @@ using SolastaUnfinishedBusiness.CustomUI;
 using SolastaUnfinishedBusiness.Interfaces;
 using SolastaUnfinishedBusiness.Models;
 using SolastaUnfinishedBusiness.Properties;
+using static SolastaUnfinishedBusiness.Models.SpellsContext;
 using static RuleDefinitions;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.FeatureDefinitionPowers;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.FeatureDefinitionSavingThrowAffinitys;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.SpellDefinitions;
-using static SolastaUnfinishedBusiness.Models.SpellsContext;
 
 namespace SolastaUnfinishedBusiness.Subclasses;
 
@@ -41,7 +42,7 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
             .SetSpellcastingClass(CharacterClassDefinitions.Sorcerer)
             // Spell level 1 — available at sorcerer level 1
             .AddPreparedSpellGroup(1,
-                AbsorbElements,
+                SpellsContext.AbsorbElements,
                 HideousLaughter,
                 Shield)
             // Spell level 2 — available at sorcerer level 3
@@ -79,7 +80,7 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
                 Feeblemind,
                 Maze,
                 SpellsContext.MindBlank,
-                SpellWard)
+                SpellsContext.SpellWardSpell)
             // Spell level 9 — available at sorcerer level 17
             .AddPreparedSpellGroup(17,
                 SpellsContext.Invulnerability,
@@ -115,15 +116,15 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
             .Create($"MagicAffinity{Name}ExtraSlots")
             .SetGuiPresentationNoContent(true)
             .SetAdditionalSlots(
-                new AdditionalSlotsDuplet { SlotLevel = 1, SlotsNumber = 3 },
-                new AdditionalSlotsDuplet { SlotLevel = 2, SlotsNumber = 2 },
-                new AdditionalSlotsDuplet { SlotLevel = 3, SlotsNumber = 2 },
-                new AdditionalSlotsDuplet { SlotLevel = 4, SlotsNumber = 2 },
-                new AdditionalSlotsDuplet { SlotLevel = 5, SlotsNumber = 2 },
-                new AdditionalSlotsDuplet { SlotLevel = 6, SlotsNumber = 2 },
-                new AdditionalSlotsDuplet { SlotLevel = 7, SlotsNumber = 2 },
-                new AdditionalSlotsDuplet { SlotLevel = 8, SlotsNumber = 2 },
-                new AdditionalSlotsDuplet { SlotLevel = 9, SlotsNumber = 2 })
+                new AdditionalSlotsDuplet { slotLevel = 1, slotsNumber = 3 },
+                new AdditionalSlotsDuplet { slotLevel = 2, slotsNumber = 2 },
+                new AdditionalSlotsDuplet { slotLevel = 3, slotsNumber = 2 },
+                new AdditionalSlotsDuplet { slotLevel = 4, slotsNumber = 2 },
+                new AdditionalSlotsDuplet { slotLevel = 5, slotsNumber = 2 },
+                new AdditionalSlotsDuplet { slotLevel = 6, slotsNumber = 2 },
+                new AdditionalSlotsDuplet { slotLevel = 7, slotsNumber = 2 },
+                new AdditionalSlotsDuplet { slotLevel = 8, slotsNumber = 2 },
+                new AdditionalSlotsDuplet { slotLevel = 9, slotsNumber = 2 })
             .AddToDB();
 
         // Wrap all three into a named feature set shown at level 1
@@ -209,15 +210,16 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
         //   Since rolls only occur vs level 4+ spells (Counterspell is level 3,
         //   so lower-level spells are auto-countered), unconditional advantage is
         //   functionally identical to "advantage vs level 4+ spells".
-        //   Implemented via SetCounterspellAffinity — handled natively by the engine.
+        //   Set directly on the MagicAffinity definition (no builder method available).
         // Part 2: Enemies have disadvantage on their Counterspell check against your spells.
         //   Implemented via CustomBehaviorCounterspellMastery (IRollSavingThrowInitiated).
         // ---------------------------------------------------------------------
         var magicAffinityCounterspellAdvantage = FeatureDefinitionMagicAffinityBuilder
             .Create($"MagicAffinity{Name}CounterspellAdvantage")
             .SetGuiPresentationNoContent(true)
-            .SetCounterspellAffinity(AdvantageType.Advantage)
             .AddToDB();
+        // SetCounterspellAffinity doesn't exist as a builder method — set directly on definition
+        magicAffinityCounterspellAdvantage.counterspellAffinity = AdvantageType.Advantage;
 
         var featureCounterspellMasteryBehavior = FeatureDefinitionBuilder
             .Create($"Feature{Name}CounterspellMastery")

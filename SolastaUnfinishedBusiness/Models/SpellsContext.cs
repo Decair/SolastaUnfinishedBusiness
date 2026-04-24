@@ -41,6 +41,7 @@ internal static class SpellsContext
     private static readonly SortedList<string, SpellListDefinition> spellLists = [];
     private static readonly Dictionary<SpellDefinition, List<SpellListDefinition>> SpellSpellListMap = [];
 
+    internal static readonly SpellDefinition AbsorbElements = GetDefinition<SpellDefinition>("AbsorbElements");
     internal static readonly SpellDefinition AirBlast = BuildAirBlast();
     internal static readonly SpellDefinition AshardalonStride = BuildAshardalonStride();
     internal static readonly SpellDefinition AuraOfLife = BuildAuraOfLife();
@@ -55,6 +56,7 @@ internal static class SpellsContext
     internal static readonly SpellDefinition CorruptingBolt = BuildCorruptingBolt();
     internal static readonly SpellDefinition CausticZap = BuildCausticZap();
     internal static readonly SpellDefinition ColorBurst = BuildColorBurst();
+    internal static readonly SpellDefinition Dawn = BuildDawn();
     internal static readonly SpellDefinition DivineWrath = BuildDivineWrath();
     internal static readonly SpellDefinition ElementalInfusion = BuildElementalInfusion();
     internal static readonly SpellDefinition ElementalWeapon = BuildElementalWeapon();
@@ -62,9 +64,12 @@ internal static class SpellsContext
     internal static readonly SpellDefinition EnduringSting = BuildEnduringSting();
     internal static readonly SpellDefinition EnsnaringStrike = BuildEnsnaringStrike();
     internal static readonly SpellDefinition FarStep = BuildFarStep();
+    internal static readonly SpellDefinition FizbanPlatinumShield = BuildFizbanPlatinumShield();
+    internal static readonly SpellDefinition Invulnerability = BuildInvulnerability();
     internal static readonly SpellDefinition MaddeningDarkness = BuildMaddeningDarkness();
     internal static readonly SpellDefinition MantleOfThorns = BuildMantleOfThorns();
     internal static readonly SpellDefinition MirrorImage = BuildMirrorImage();
+    internal static readonly SpellDefinition MindBlank = BuildMindBlank();
     internal static readonly SpellDefinition PetalStorm = BuildPetalStorm();
     internal static readonly SpellDefinition PowerWordHeal = BuildPowerWordHeal();
     internal static readonly SpellDefinition PowerWordKill = BuildPowerWordKill();
@@ -73,6 +78,9 @@ internal static class SpellsContext
     internal static readonly SpellDefinition PulseWave = BuildPulseWave();
     internal static readonly SpellDefinition SearingSmite = BuildSearingSmite();
     internal static readonly SpellDefinition SonicBoom = BuildSonicBoom();
+    internal static readonly SpellDefinition ShelterFromEnergy = BuildShelterFromEnergy();
+    internal static readonly SpellDefinition SickeningRadiance = BuildSickeningRadiance();
+	internal static readonly SpellDefinition SpellWardSpell = GetDefinition<SpellDefinition>("SpellWard");
     internal static readonly SpellDefinition StaggeringSmite = BuildStaggeringSmite();
     internal static readonly SpellDefinition SteelWhirlwind = BuildSteelWhirlwind();
     internal static readonly SpellDefinition SunlightBlade = BuildSunlightBlade();
@@ -81,6 +89,7 @@ internal static class SpellsContext
     internal static readonly SpellDefinition ThunderousSmite = BuildThunderousSmite();
     internal static readonly SpellDefinition VitriolicSphere = BuildVitriolicSphere();
     internal static readonly SpellDefinition Web = BuildWeb();
+    internal static readonly SpellDefinition Weird = BuildWeird();
     internal static readonly SpellDefinition Wrack = BuildWrack();
     internal static readonly SpellDefinition WrathfulSmite = BuildWrathfulSmite();
 
