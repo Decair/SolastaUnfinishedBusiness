@@ -6,6 +6,7 @@ using SolastaUnfinishedBusiness.Builders;
 using SolastaUnfinishedBusiness.Builders.Features;
 using SolastaUnfinishedBusiness.CustomUI;
 using SolastaUnfinishedBusiness.Interfaces;
+using SolastaUnfinishedBusiness.Models;
 using SolastaUnfinishedBusiness.Properties;
 using static RuleDefinitions;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper;
@@ -21,46 +22,76 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
 {
     private const string Name = "ArcaneSavant";
 
-    // Stored for use in LateLoad
+    // Stored for use in LateLoad()
     private static FeatureDefinitionMagicAffinity _magicAffinityArcaneManipulation;
 
     public SorcerousArcaneSavant()
     {
-        // -------------------------
+        // =====================================================================
         // LEVEL 01
-        // -------------------------
+        // =====================================================================
 
-        // -- Expanded Spells (Auto-Prepared) --
+        // ---------------------------------------------------------------------
+        // Expanded Spells (Auto-Prepared)
+        // ---------------------------------------------------------------------
         var autoPreparedSpells = FeatureDefinitionAutoPreparedSpellsBuilder
             .Create($"AutoPreparedSpells{Name}")
             .SetGuiPresentation("ExpandedSpells", Category.Feature)
             .SetAutoTag("Origin")
             .SetSpellcastingClass(CharacterClassDefinitions.Sorcerer)
-            // Spell level 1 (available at sorcerer level 1)
-            .AddPreparedSpellGroup(1, AbsorbElements, HideousLaughter, Shield)
-            // Spell level 2 (available at sorcerer level 3)
-            .AddPreparedSpellGroup(3, HoldPerson, Levitate, SpellsContext.PsychicWhip)
-            // Spell level 3 (available at sorcerer level 5)
-            .AddPreparedSpellGroup(5, Counterspell, DispelMagic, Slow)
-            // Spell level 4 (available at sorcerer level 7)
-            .AddPreparedSpellGroup(7, Banishment, BlackTentacles, PhantasmalKiller,
+            // Spell level 1 — available at sorcerer level 1
+            .AddPreparedSpellGroup(1,
+                AbsorbElements,
+                HideousLaughter,
+                Shield)
+            // Spell level 2 — available at sorcerer level 3
+            .AddPreparedSpellGroup(3,
+                HoldPerson,
+                Levitate,
+                SpellsContext.PsychicWhip)
+            // Spell level 3 — available at sorcerer level 5
+            .AddPreparedSpellGroup(5,
+                Counterspell,
+                DispelMagic,
+                Slow)
+            // Spell level 4 — available at sorcerer level 7
+            .AddPreparedSpellGroup(7,
+                Banishment,
+                BlackTentacles,
+                PhantasmalKiller,
                 SpellsContext.SickeningRadiance)
-            // Spell level 5 (available at sorcerer level 9)
-            .AddPreparedSpellGroup(9, SpellsContext.Dawn, HoldMonster, MindTwist)
-            // Spell level 6 (available at sorcerer level 11)
-            .AddPreparedSpellGroup(11, SpellsContext.FizbanPlatinumShield, GlobeOfInvulnerability,
-                SpellsContext.ShelterFromEnergy, TrueSeeing)
-            // Spell level 7 (available at sorcerer level 13)
-            .AddPreparedSpellGroup(13, PrismaticSpray)
-            // Spell level 8 (available at sorcerer level 15)
-            .AddPreparedSpellGroup(15, Feeblemind, Maze, SpellsContext.MindBlank, SpellWard)
-            // Spell level 9 (available at sorcerer level 17)
-            .AddPreparedSpellGroup(17, SpellsContext.Invulnerability, SpellsContext.Weird)
+            // Spell level 5 — available at sorcerer level 9
+            .AddPreparedSpellGroup(9,
+                SpellsContext.Dawn,
+                HoldMonster,
+                MindTwist)
+            // Spell level 6 — available at sorcerer level 11
+            .AddPreparedSpellGroup(11,
+                SpellsContext.FizbanPlatinumShield,
+                GlobeOfInvulnerability,
+                SpellsContext.ShelterFromEnergy,
+                TrueSeeing)
+            // Spell level 7 — available at sorcerer level 13
+            .AddPreparedSpellGroup(13,
+                PrismaticSpray)
+            // Spell level 8 — available at sorcerer level 15
+            .AddPreparedSpellGroup(15,
+                Feeblemind,
+                Maze,
+                SpellsContext.MindBlank,
+                SpellWard)
+            // Spell level 9 — available at sorcerer level 17
+            .AddPreparedSpellGroup(17,
+                SpellsContext.Invulnerability,
+                SpellsContext.Weird)
             .AddToDB();
 
-        // -- Arcane Savant Feature Set (extra reaction + extra cantrips + extra spell slots) --
+        // ---------------------------------------------------------------------
+        // Arcane Savant Feature Set
+        // (extra reaction + 3 bonus cantrips + extra spell slots)
+        // ---------------------------------------------------------------------
 
-        // Extra reaction
+        // Extra reaction — recharges at the start of every turn (once per turn limit)
         var actionAffinityExtraReaction = FeatureDefinitionActionAffinityBuilder
             .Create($"ActionAffinity{Name}ExtraReaction")
             .SetGuiPresentationNoContent(true)
@@ -68,7 +99,7 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
             .AddCustomSubFeatures(FeatureUseLimiter.OncePerTurn)
             .AddToDB();
 
-        // Extra cantrips — player chooses 3 from sorcerer list
+        // 3 bonus cantrips — player chooses from sorcerer cantrip list at level-up
         var pointPoolBonusCantrips = FeatureDefinitionPointPoolBuilder
             .Create($"PointPool{Name}BonusCantrips")
             .SetGuiPresentation(Category.Feature)
@@ -76,7 +107,8 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
             .AddToDB();
 
         // Extra spell slots
-        // +3 level 1 slots; +2 at each level 2-9 (engine won't grant slots above character's casting level)
+        // +3 level 1 slots; +2 at each of levels 2-9
+        // The engine will not grant slots above the character's natural casting level
         var magicAffinityExtraSlots = FeatureDefinitionMagicAffinityBuilder
             .Create($"MagicAffinity{Name}ExtraSlots")
             .SetGuiPresentation(Category.Feature)
@@ -92,30 +124,38 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
                 new AdditionalSlotsDuplet { SlotLevel = 9, SlotsNumber = 2 })
             .AddToDB();
 
-        // Wrap all three level-1 features into a named feature set
+        // Wrap all three into a named feature set shown at level 1
         var featureSetArcaneSavant = FeatureDefinitionFeatureSetBuilder
             .Create($"FeatureSet{Name}ArcaneSavant")
             .SetGuiPresentation(Category.Feature)
-            .SetFeatureSet(actionAffinityExtraReaction, pointPoolBonusCantrips, magicAffinityExtraSlots)
+            .SetFeatureSet(
+                actionAffinityExtraReaction,
+                pointPoolBonusCantrips,
+                magicAffinityExtraSlots)
             .AddToDB();
 
-        // -------------------------
+        // =====================================================================
         // LEVEL 06
-        // -------------------------
+        // =====================================================================
 
-        // -- Arcane Manipulation --
-        // All spells cast at one level higher than the slot used (spell levels 1-8 only)
+        // ---------------------------------------------------------------------
+        // Arcane Manipulation
+        // All spells cast at one spell level higher than the slot used.
+        // Applies to spell levels 1-8 only (level 9 excluded — populated in LateLoad).
+        // ---------------------------------------------------------------------
         _magicAffinityArcaneManipulation = FeatureDefinitionMagicAffinityBuilder
             .Create($"MagicAffinity{Name}ArcaneManipulation")
             .SetGuiPresentation(Category.Feature)
-            .SetWarList(1) // +1 slot level bonus
+            .SetWarList(1) // +1 effective slot level
             .AddToDB();
-        // Populated in LateLoad() — see below
+        // War list is populated in LateLoad() below
 
-        // -- Resurgent Sorcery --
-        // +4 sorcery points (flat), and full recovery on short rest
+        // ---------------------------------------------------------------------
+        // Resurgent Sorcery
+        // +4 sorcery points (flat) and full sorcery point recovery on short rest.
+        // ---------------------------------------------------------------------
 
-        // +4 flat sorcery points via ModifyPowerPoolAmount
+        // +4 flat sorcery points bonus
         var featureResurgentSorceryPoints = FeatureDefinitionBuilder
             .Create($"Feature{Name}ResurgentSorceryPoints")
             .SetGuiPresentationNoContent(true)
@@ -127,28 +167,22 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
             })
             .AddToDB();
 
-        // Short-rest full sorcery point recovery power
-        // We create a power that restores all sorcery points, triggered on short rest
+        // Clone PowerSorcererManaPainterTap as the base for the short-rest recovery power.
+        // This follows the same pattern as PowerSorcerousRestoration in 2024SorcererContext.
+        // The CustomBehaviorResurgentSorcery zeroes out usedSorceryPoints on activation,
+        // achieving full recovery regardless of current sorcery point total.
         var powerResurgentSorceryRestore = FeatureDefinitionPowerBuilder
-            .Create($"Power{Name}ResurgentSorceryRestore")
-            .SetGuiPresentation(Category.Feature)
-            .SetUsesFixed(ActivationTime.Rest, RechargeRate.ShortRest)
-            .SetShowCasting(false)
-            .SetEffectDescription(
-                EffectDescriptionBuilder
-                    .Create()
-                    .SetTargetingData(Side.Ally, RangeType.Self, 0, TargetType.Self)
-                    .SetEffectForms(
-                        EffectFormBuilder
-                            .Create()
-                            .SetSpellForm(9) // restores spell/sorcery resources
-                            .Build())
-                    .Build())
-            .AddCustomSubFeatures(new CustomBehaviorResurgentSorcery())
+            .Create(PowerSorcererManaPainterTap, $"Power{Name}ResurgentSorceryRestore")
+            .SetOrUpdateGuiPresentation(Category.Feature)
+            .AddCustomSubFeatures(
+                ModifyPowerVisibility.Hidden,
+                new CustomBehaviorResurgentSorcery())
             .AddToDB();
 
-        // Rest activity to trigger the recovery on short rest
-        var restActivityResurgentSorcery = RestActivityDefinitionBuilder
+        // Register as a short-rest activity.
+        // RestActivityDefinition registers itself into the DB via AddToDB() and
+        // does NOT need to be in the feature set.
+        RestActivityDefinitionBuilder
             .Create($"RestActivity{Name}ResurgentSorcery")
             .SetGuiPresentation(Category.Feature)
             .SetRestData(
@@ -159,37 +193,58 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
                 powerResurgentSorceryRestore.Name)
             .AddToDB();
 
-        // Wrap Resurgent Sorcery into a feature set
         var featureSetResurgentSorcery = FeatureDefinitionFeatureSetBuilder
             .Create($"FeatureSet{Name}ResurgentSorcery")
             .SetGuiPresentation(Category.Feature)
             .SetFeatureSet(
                 featureResurgentSorceryPoints,
-                powerResurgentSorceryRestore,
-                restActivityResurgentSorcery)
+                powerResurgentSorceryRestore)
             .AddToDB();
 
-        // -- Counterspell Mastery --
-        var featureCounterspellMastery = FeatureDefinitionBuilder
+        // ---------------------------------------------------------------------
+        // Counterspell Mastery
+        // Part 1: Advantage on YOUR check when casting Counterspell.
+        //   Since rolls only occur vs level 4+ spells (Counterspell is level 3,
+        //   so lower-level spells are auto-countered), unconditional advantage is
+        //   functionally identical to "advantage vs level 4+ spells".
+        //   Implemented via SetCounterspellAffinity — handled natively by the engine.
+        // Part 2: Enemies have disadvantage on their Counterspell check against your spells.
+        //   Implemented via CustomBehaviorCounterspellMastery (IRollSavingThrowInitiated).
+        // ---------------------------------------------------------------------
+        var magicAffinityCounterspellAdvantage = FeatureDefinitionMagicAffinityBuilder
+            .Create($"MagicAffinity{Name}CounterspellAdvantage")
+            .SetGuiPresentationNoContent(true)
+            .SetCounterspellAffinity(AdvantageType.Advantage)
+            .AddToDB();
+
+        var featureCounterspellMasteryBehavior = FeatureDefinitionBuilder
             .Create($"Feature{Name}CounterspellMastery")
-            .SetGuiPresentation(Category.Feature)
+            .SetGuiPresentationNoContent(true)
             .AddCustomSubFeatures(new CustomBehaviorCounterspellMastery())
             .AddToDB();
 
-        // -------------------------
+        var featureSetCounterspellMastery = FeatureDefinitionFeatureSetBuilder
+            .Create($"FeatureSet{Name}CounterspellMastery")
+            .SetGuiPresentation(Category.Feature)
+            .SetFeatureSet(
+                magicAffinityCounterspellAdvantage,
+                featureCounterspellMasteryBehavior)
+            .AddToDB();
+
+        // =====================================================================
         // LEVEL 14
-        // -------------------------
+        // =====================================================================
 
-        // -- Spell Resistance --
-        // Advantage on saving throws vs spells — uses existing base game feature directly
+        // Spell Resistance — advantage on saving throws vs spells and magic effects.
+        // References the existing base game feature directly. No custom code needed.
 
-        // -------------------------
+        // =====================================================================
         // LEVEL 18
-        // -------------------------
+        // =====================================================================
 
-        // -- Mystic Recovery --
-        // Bonus action self-heal for 70 HP, remove blindness/disease, once per long rest
-        // Modelled directly on SorcerousDivineHeart's Divine Recovery
+        // Mystic Recovery — bonus action self-heal for 70 HP, removes blindness
+        // and disease, usable once per long rest.
+        // Modelled directly on SorcerousDivineHeart's Divine Recovery power.
         var powerMysticRecovery = FeatureDefinitionPowerBuilder
             .Create($"Power{Name}MysticRecovery")
             .SetGuiPresentation(Category.Feature, Heal)
@@ -201,9 +256,9 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
                     .Build())
             .AddToDB();
 
-        // -------------------------
-        // MAIN SUBCLASS DEFINITION
-        // -------------------------
+        // =====================================================================
+        // SUBCLASS DEFINITION
+        // =====================================================================
 
         Subclass = CharacterSubclassDefinitionBuilder
             .Create($"Sorcerous{Name}")
@@ -216,7 +271,7 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
             .AddFeaturesAtLevel(6,
                 _magicAffinityArcaneManipulation,
                 featureSetResurgentSorcery,
-                featureCounterspellMastery)
+                featureSetCounterspellMastery)
             .AddFeaturesAtLevel(14,
                 SavingThrowAffinitySpellResistance)
             .AddFeaturesAtLevel(18,
@@ -234,15 +289,21 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
     // ReSharper disable once UnassignedGetOnlyAutoProperty
     internal override DeityDefinition DeityDefinition { get; }
 
-    // Called after all spells are registered — populates the war list for Arcane Manipulation
-    // Includes spell levels 1-8 only (level 9 spells are excluded to avoid bumping above level 9)
+    // =========================================================================
+    // LATE LOAD
+    // =========================================================================
+    // Must be called from the mod boot sequence alongside other subclass LateLoad()
+    // calls. Find the correct location by searching for SorcerousFieldManipulator.LateLoad().
+    //
+    // Populates the Arcane Manipulation war list with all spells of levels 1-8.
+    // Cantrips (level 0) and level 9 spells are excluded.
     internal static void LateLoad()
     {
         foreach (var spellsByLevel in SpellListDefinitions.SpellListAllSpells.SpellsByLevel)
         {
             if (spellsByLevel.Level is 0 or 9)
             {
-                continue; // skip cantrips and level 9 spells
+                continue;
             }
 
             foreach (var spellDefinition in spellsByLevel.Spells)
@@ -262,10 +323,11 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
         }
     }
 
-    // -------------------------
+    // =========================================================================
     // RESURGENT SORCERY BEHAVIOR
-    // -------------------------
-    // Fully restores sorcery points on short rest
+    // =========================================================================
+    // Fires after the short-rest recovery power resolves.
+    // Zeroes out usedSorceryPoints, restoring the full pool.
     private sealed class CustomBehaviorResurgentSorcery : IPowerOrSpellFinishedByMe
     {
         public IEnumerator OnPowerOrSpellFinishedByMe(
@@ -273,58 +335,27 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
             BaseDefinition baseDefinition)
         {
             var rulesetCharacter = action.ActingCharacter.RulesetCharacter;
-            var usablePower = PowerProvider.Get(PowerSorcererManaPainterTap, rulesetCharacter);
 
-            if (usablePower == null)
-            {
-                yield break;
-            }
+            rulesetCharacter.usedSorceryPoints = 0;
+            rulesetCharacter.SorceryPointsAltered?.Invoke(
+                rulesetCharacter,
+                rulesetCharacter.usedSorceryPoints);
 
-            // Restore all sorcery points by setting remaining uses to max
-            var missing = usablePower.MaxUses - usablePower.RemainingUses;
-
-            if (missing > 0)
-            {
-                rulesetCharacter.UpdateUsageForPowerPool(-missing, usablePower);
-            }
+            yield break;
         }
     }
 
-    // -------------------------
+    // =========================================================================
     // COUNTERSPELL MASTERY BEHAVIOR
-    // -------------------------
-    // Part 1: You have advantage on spellcasting checks when casting Counterspell vs level 4+ spells
-    // Part 2: Enemies have disadvantage on their Counterspell checks against your spells
-    private sealed class CustomBehaviorCounterspellMastery
-        : IRollSavingThrowInitiated, IMagicEffectInitiatedByMe
+    // =========================================================================
+    // Part 1 — advantage on OUR Counterspell check:
+    //   Handled natively via MagicAffinityCounterspellAdvantage above.
+    //
+    // Part 2 — enemy disadvantage on their Counterspell check against our spells:
+    //   When an enemy casts Counterspell against one of our spells, inject a
+    //   disadvantage trend into their spellcasting check via IRollSavingThrowInitiated.
+    private sealed class CustomBehaviorCounterspellMastery : IRollSavingThrowInitiated
     {
-        // Part 1: When WE cast Counterspell against a level 4+ spell, grant advantage on our check
-        public IEnumerator OnMagicEffectInitiatedByMe(
-            CharacterAction action,
-            GameLocationCharacter attacker,
-            List<GameLocationCharacter> targets)
-        {
-            if (action is not CharacterActionCastSpell actionCastSpell ||
-                actionCastSpell.ActiveSpell?.SpellDefinition != Counterspell)
-            {
-                yield break;
-            }
-
-            // Find the spell being countered — it's the active spell on the target
-            var target = targets.Count > 0 ? targets[0] : null;
-
-            if (target?.RulesetCharacter?.ConcentratedSpell == null)
-            {
-                // Try to get spell level from the action's context
-                // Advantage is applied via the saving throw modifier below
-                yield break;
-            }
-
-            // The actual advantage grant is handled in OnSavingThrowInitiated below
-            // This hook is used to validate the context
-        }
-
-        // Part 1 + Part 2: Modify the spellcasting ability check (treated as saving throw contest)
         public void OnSavingThrowInitiated(
             RulesetActor rulesetActorCaster,
             RulesetActor rulesetActorDefender,
@@ -340,24 +371,31 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
             int outcomeDelta,
             List<EffectForm> effectForms)
         {
-            // Part 2: If an enemy is casting Counterspell against us (we are the defender),
-            // give them disadvantage on their check
-            if (sourceDefinition == Counterspell &&
-                rulesetActorDefender is RulesetCharacter defender &&
-                defender.GetSubclassLevel(CharacterClassDefinitions.Sorcerer, $"Sorcerous{Name}") >= 6)
+            // Only fire when the source is Counterspell
+            if (sourceDefinition != Counterspell)
             {
-                advantageTrends.Add(new TrendInfo(
-                    -1,
-                    FeatureSourceType.CharacterFeature,
-                    $"Feature{Name}CounterspellMastery",
-                    null));
+                return;
             }
+
+            // We must be the defender (our spell is being countered)
+            if (rulesetActorDefender is not RulesetCharacter defender)
+            {
+                return;
+            }
+
+            // Confirm the defender has this subclass at level 6+
+            if (defender.GetSubclassLevel(
+                    CharacterClassDefinitions.Sorcerer, $"Sorcerous{Name}") < 6)
+            {
+                return;
+            }
+
+            // Apply disadvantage to the enemy's Counterspell check
+            advantageTrends.Add(new TrendInfo(
+                -1,
+                FeatureSourceType.CharacterFeature,
+                $"Feature{Name}CounterspellMastery",
+                null));
         }
     }
 }
-
-// NOTE: Reference helper for spell names from SpellsContext (UB-added spells)
-// These are accessed as SpellsContext.PsychicWhip, SpellsContext.Dawn, etc.
-// in the auto-prepared spells section above. Make sure SpellsContext is imported
-// via: using static SolastaUnfinishedBusiness.Models.SpellsContext;
-// (add this using directive at the top of the file)

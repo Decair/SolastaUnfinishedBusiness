@@ -1,0 +1,14 @@
+Feature/&FeatureSetArcaneSavantArcaneSavantDescription=Your arcane mastery manifests in three ways: you gain an additional reaction each round, you learn 3 additional cantrips of your choice from the sorcerer spell list, and you gain additional spell slots (3 extra level 1 slots, and 2 extra slots at each spell level from 2 through 9, becoming available as you naturally reach each spell level).
+Feature/&FeatureSetArcaneSavantArcaneSavantTitle=Arcane Savant
+Feature/&MagicAffinityArcaneSavantArcaneManipulationDescription=Starting at 6th level, all your spells are cast at one spell level higher than the spell slot used. This does not apply to spells cast using a 9th level slot.
+Feature/&MagicAffinityArcaneSavantArcaneManipulationTitle=Arcane Manipulation
+Feature/&FeatureSetArcaneSavantResurgentSorceryDescription=Starting at 6th level, you gain 4 additional sorcery points, and you fully recover all your sorcery points whenever you take a short rest.
+Feature/&FeatureSetArcaneSavantResurgentSorceryTitle=Resurgent Sorcery
+Feature/&PowerArcaneSavantResurgentSorceryRestoreDescription=Recover all sorcery points on a short rest.
+Feature/&PowerArcaneSavantResurgentSorceryRestoreTitle=Resurgent Sorcery
+Feature/&FeatureSetArcaneSavantCounterspellMasteryDescription=Starting at 6th level, you gain advantage on your spellcasting checks when casting Counterspell. Additionally, enemies have disadvantage on their spellcasting checks when casting Counterspell against any of your spells.
+Feature/&FeatureSetArcaneSavantCounterspellMasteryTitle=Counterspell Mastery
+Feature/&PowerArcaneSavantMysticRecoveryDescription=As a Bonus Action, you can restore 70 hit points to yourself and remove blindness and diseases. Usable once per long rest.
+Feature/&PowerArcaneSavantMysticRecoveryTitle=Mystic Recovery
+Subclass/&SorcerousArcaneSavantDescription=Arcane Savants are sorcerers whose innate magical talent has blossomed into supreme arcane mastery. Through intense focus and raw power, they command a vast array of spells, bend the rules of magic to cast more powerfully than others, and project an aura of arcane dominance that makes their spells nearly impossible to counter.
+Subclass/&SorcerousArcaneSavantTitle=Arcane Savant

@@ -72,6 +72,7 @@ internal static class SubclassesContext
         CircleOfTheLife.LateLoad();
         CollegeOfLife.LateLoad();
         RangerSurvivalist.LateLoad();
+		SorcerousArcaneSavant.LateLoad();
         SorcerousFieldManipulator.LateLoad();
         WizardAbjuration.LateLoad();
         WizardDeadMaster.LateLoad();
