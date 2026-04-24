@@ -100,18 +100,20 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
             .AddToDB();
 
         // 3 bonus cantrips — player chooses from sorcerer cantrip list at level-up
+        // NoContent: sub-feature of FeatureSetArcaneSavant, not shown separately
         var pointPoolBonusCantrips = FeatureDefinitionPointPoolBuilder
             .Create($"PointPool{Name}BonusCantrips")
-            .SetGuiPresentation(Category.Feature)
+            .SetGuiPresentationNoContent(true)
             .SetPool(HeroDefinitions.PointsPoolType.Cantrip, 3)
             .AddToDB();
 
         // Extra spell slots
         // +3 level 1 slots; +2 at each of levels 2-9
         // The engine will not grant slots above the character's natural casting level
+        // NoContent: sub-feature of FeatureSetArcaneSavant, not shown separately
         var magicAffinityExtraSlots = FeatureDefinitionMagicAffinityBuilder
             .Create($"MagicAffinity{Name}ExtraSlots")
-            .SetGuiPresentation(Category.Feature)
+            .SetGuiPresentationNoContent(true)
             .SetAdditionalSlots(
                 new AdditionalSlotsDuplet { SlotLevel = 1, SlotsNumber = 3 },
                 new AdditionalSlotsDuplet { SlotLevel = 2, SlotsNumber = 2 },
