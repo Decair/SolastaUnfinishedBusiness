@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using SolastaUnfinishedBusiness.Api.GameExtensions;
 using SolastaUnfinishedBusiness.Behaviors;
+using SolastaUnfinishedBusiness.Behaviors.Specific;
 using SolastaUnfinishedBusiness.Builders;
 using SolastaUnfinishedBusiness.Builders.Features;
 using SolastaUnfinishedBusiness.CustomUI;
 using SolastaUnfinishedBusiness.Interfaces;
 using SolastaUnfinishedBusiness.Models;
 using SolastaUnfinishedBusiness.Properties;
+using SolastaUnfinishedBusiness.Validators;
 using static SolastaUnfinishedBusiness.Models.SpellsContext;
 using static RuleDefinitions;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper;
+using static SolastaUnfinishedBusiness.Api.DatabaseHelper.FeatureDefinitionActionAffinitys;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.FeatureDefinitionPowers;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.SpellDefinitions;
 
@@ -43,16 +46,19 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
             .AddPreparedSpellGroup(1,
                 SpellsContext.ElementalInfusion, // ElementalInfusion is the internal name for Absorb Elements
                 HideousLaughter,
+                MagicMissile,
                 Shield)
             // Spell level 2 — available at sorcerer level 3
             .AddPreparedSpellGroup(3,
                 HoldPerson,
                 Levitate,
-                SpellsContext.PsychicWhip)
+                SpellsContext.PsychicWhip,
+                SpellsContext.Web)
             // Spell level 3 — available at sorcerer level 5
             .AddPreparedSpellGroup(5,
                 Counterspell,
                 DispelMagic,
+                Haste,
                 Slow)
             // Spell level 4 — available at sorcerer level 7
             .AddPreparedSpellGroup(7,
@@ -252,18 +258,29 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
         // LEVEL 18
         // =====================================================================
 
-        // Mystic Recovery — bonus action self-heal for 70 HP, removes blindness
-        // and disease, usable once per long rest.
-        // Modelled directly on SorcerousDivineHeart's Divine Recovery power.
-        var powerMysticRecovery = FeatureDefinitionPowerBuilder
-            .Create($"Power{Name}MysticRecovery")
-            .SetGuiPresentation(Category.Feature, Heal)
-            .SetUsesFixed(ActivationTime.BonusAction, RechargeRate.LongRest)
-            .SetEffectDescription(
-                EffectDescriptionBuilder
-                    .Create(Heal.EffectDescription)
-                    .SetTargetingData(Side.Ally, RangeType.Self, 0, TargetType.Self)
-                    .Build())
+        // Supreme Will — copied from SorcerousPsion
+        // Whenever you cast a concentration spell, you can pay sorcery points equal
+        // to twice the spell level to cast it without concentration. Once per short rest.
+
+        var powerSupremeWill = FeatureDefinitionPowerBuilder
+            .Create($"Power{Name}SupremeWill")
+            .SetGuiPresentation($"FeatureSet{Name}SupremeWill", Category.Feature, hidden: true)
+            .SetUsesFixed(ActivationTime.NoCost, RechargeRate.ShortRest)
+            .AddToDB();
+
+        var actionAffinitySupremeWill = FeatureDefinitionActionAffinityBuilder
+            .Create(ActionAffinitySorcererMetamagicToggle, $"ActionAffinity{Name}SupremeWill")
+            .SetGuiPresentationNoContent(true)
+            .SetAuthorizedActions((ActionDefinitions.Id)ExtraActionId.SupremeWillToggle)
+            .AddCustomSubFeatures(
+                new CustomBehaviorSupremeWill(powerSupremeWill),
+                new ValidateDefinitionApplication(ValidatorsCharacter.HasAvailablePowerUsage(powerSupremeWill)))
+            .AddToDB();
+
+        var featureSetSupremeWill = FeatureDefinitionFeatureSetBuilder
+            .Create($"FeatureSet{Name}SupremeWill")
+            .SetGuiPresentation(Category.Feature)
+            .AddFeatureSet(actionAffinitySupremeWill, powerSupremeWill)
             .AddToDB();
 
         // =====================================================================
@@ -285,7 +302,7 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
             .AddFeaturesAtLevel(14,
                 savingThrowAffinityArcaneSavantSpellResistance)
             .AddFeaturesAtLevel(18,
-                powerMysticRecovery)
+                featureSetSupremeWill)
             .AddToDB();
     }
 
@@ -406,6 +423,68 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
                 FeatureSourceType.CharacterFeature,
                 $"Feature{Name}CounterspellMastery",
                 null));
+        }
+    }
+
+    // =========================================================================
+    // SUPREME WILL BEHAVIOR
+    // =========================================================================
+    // Copied from SorcerousPsion.CustomBehaviorSupremeWill.
+    // Implements IModifyConcentrationRequirement to remove concentration when
+    // the toggle is active and enough sorcery points are available.
+    // Implements IMagicEffectFinishedByMe to spend the sorcery points after casting.
+    private sealed class CustomBehaviorSupremeWill(FeatureDefinitionPower powerSupremeWill)
+        : IModifyConcentrationRequirement, IMagicEffectFinishedByMe
+    {
+        public IEnumerator OnMagicEffectFinishedByMe(
+            CharacterAction action,
+            GameLocationCharacter attacker,
+            List<GameLocationCharacter> targets)
+        {
+            var hasTag = attacker.UsedSpecialFeatures.TryGetValue(powerSupremeWill.Name, out var value);
+
+            attacker.UsedSpecialFeatures.TryAdd(powerSupremeWill.Name, 0);
+
+            if (action is not CharacterActionCastSpell actionCastSpell ||
+                actionCastSpell.Countered ||
+                actionCastSpell.ExecutionFailed ||
+                !hasTag || value == 0)
+            {
+                yield break;
+            }
+
+            var rulesetCharacter = attacker.RulesetCharacter;
+            var usablePower = PowerProvider.Get(powerSupremeWill, rulesetCharacter);
+
+            rulesetCharacter.UsePower(usablePower);
+            rulesetCharacter.SpendSorceryPoints(2 * actionCastSpell.ActiveSpell.EffectLevel);
+        }
+
+        public bool RequiresConcentration(RulesetCharacter rulesetCharacter, RulesetEffectSpell rulesetEffectSpell)
+        {
+            if (!rulesetCharacter.IsToggleEnabled((ActionDefinitions.Id)ExtraActionId.SupremeWillToggle))
+            {
+                return rulesetEffectSpell.SpellDefinition.RequiresConcentration;
+            }
+
+            if (rulesetCharacter.GetRemainingPowerUses(powerSupremeWill) == 0)
+            {
+                return rulesetEffectSpell.SpellDefinition.RequiresConcentration;
+            }
+
+            if (!rulesetEffectSpell.SpellDefinition.RequiresConcentration)
+            {
+                return rulesetEffectSpell.SpellDefinition.RequiresConcentration;
+            }
+
+            var attacker = GameLocationCharacter.GetFromActor(rulesetCharacter);
+            var requiredPoints = rulesetEffectSpell.EffectLevel * 2;
+            var hasConcentrationChanged = rulesetCharacter.RemainingSorceryPoints >= requiredPoints;
+
+            attacker.UsedSpecialFeatures.TryAdd(powerSupremeWill.Name, 0);
+            attacker.UsedSpecialFeatures[powerSupremeWill.Name] = hasConcentrationChanged ? 1 : 0;
+
+            return !hasConcentrationChanged;
         }
     }
 }
