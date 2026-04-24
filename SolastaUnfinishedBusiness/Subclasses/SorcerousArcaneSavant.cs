@@ -42,7 +42,7 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
             .SetSpellcastingClass(CharacterClassDefinitions.Sorcerer)
             // Spell level 1 — available at sorcerer level 1
             .AddPreparedSpellGroup(1,
-                SpellsContext.AbsorbElements,
+                SpellsContext.ElementalInfusion, // ElementalInfusion is the internal name for Absorb Elements
                 HideousLaughter,
                 Shield)
             // Spell level 2 — available at sorcerer level 3
