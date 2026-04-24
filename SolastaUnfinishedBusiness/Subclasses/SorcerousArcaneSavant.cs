@@ -13,7 +13,6 @@ using static SolastaUnfinishedBusiness.Models.SpellsContext;
 using static RuleDefinitions;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.FeatureDefinitionPowers;
-using static SolastaUnfinishedBusiness.Api.DatabaseHelper.FeatureDefinitionSavingThrowAffinitys;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.SpellDefinitions;
 
 namespace SolastaUnfinishedBusiness.Subclasses;
@@ -239,8 +238,15 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
         // LEVEL 14
         // =====================================================================
 
-        // Spell Resistance — advantage on saving throws vs spells and magic effects.
-        // References the existing base game feature directly. No custom code needed.
+        // Spell Resistance — advantage on saving throws vs spells.
+        // Built as our own feature following WizardSpellMaster's pattern,
+        // giving us a clean title and description in the character UI.
+        var savingThrowAffinityArcaneSavantSpellResistance = FeatureDefinitionSavingThrowAffinityBuilder
+            .Create($"SavingThrowAffinity{Name}SpellResistance")
+            .SetGuiPresentation(Category.Feature)
+            .SetAffinities(CharacterSavingThrowAffinity.Advantage, true,
+                AttributeDefinitions.AbilityScoreNames)
+            .AddToDB();
 
         // =====================================================================
         // LEVEL 18
@@ -277,7 +283,7 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
                 featureSetResurgentSorcery,
                 featureSetCounterspellMastery)
             .AddFeaturesAtLevel(14,
-                SavingThrowAffinitySpellResistance)
+                savingThrowAffinityArcaneSavantSpellResistance)
             .AddFeaturesAtLevel(18,
                 powerMysticRecovery)
             .AddToDB();
