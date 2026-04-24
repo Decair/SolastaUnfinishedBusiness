@@ -94,7 +94,7 @@ public sealed class CircleOfTheWildfire : AbstractSubclass
     public CircleOfTheWildfire()
     {
         //
-        // LEVEL 03
+        // LEVEL 02
         //
 
         var autoPreparedSpellsWildfire = FeatureDefinitionAutoPreparedSpellsBuilder
@@ -376,6 +376,68 @@ public sealed class CircleOfTheWildfire : AbstractSubclass
             .AddToDB();
 
         //
+        // LEVEL 02 - Martial Prowess
+        //
+
+        var featureSetMartialProwess = FeatureDefinitionFeatureSetBuilder
+            .Create($"FeatureSet{Name}MartialProwess")
+            .SetGuiPresentation(Category.Feature)
+            .SetFeatureSet(
+                FeatureDefinitionProficiencyBuilder
+                    .Create($"Proficiency{Name}MartialProwessArmor")
+                    .SetGuiPresentationNoContent(true)
+                    .SetProficiencies(ProficiencyType.Armor, EquipmentDefinitions.MediumArmorCategory)
+                    .AddToDB(),
+                FeatureDefinitionProficiencyBuilder
+                    .Create($"Proficiency{Name}MartialProwessWeapon")
+                    .SetGuiPresentationNoContent(true)
+                    .SetProficiencies(ProficiencyType.Weapon, EquipmentDefinitions.MartialWeaponCategory)
+                    .AddToDB())
+            .AddToDB();
+
+        //
+        // LEVEL 02 - Primal Blessing
+        //
+
+        var featureSetPrimalBlessing = FeatureDefinitionFeatureSetBuilder
+            .Create($"FeatureSet{Name}PrimalBlessing")
+            .SetGuiPresentation(Category.Feature)
+            .SetFeatureSet(
+                // +2 Wild Shape uses
+                FeatureDefinitionBuilder
+                    .Create($"Feature{Name}PrimalBlessingWildShape")
+                    .SetGuiPresentationNoContent(true)
+                    .AddCustomSubFeatures(new ModifyPowerPoolAmount
+                    {
+                        PowerPool = PowerDruidWildShape,
+                        Type = PowerPoolBonusCalculationType.Fixed,
+                        Value = 2
+                    })
+                    .AddToDB(),
+                // +4 cantrips — player chooses from druid cantrip list at level-up
+                FeatureDefinitionPointPoolBuilder
+                    .Create($"PointPool{Name}PrimalBlessingCantrips")
+                    .SetGuiPresentationNoContent(true)
+                    .SetPool(HeroDefinitions.PointsPoolType.Cantrip, 4)
+                    .AddToDB(),
+                // Extra spell slots — same progression as Arcane Savant
+                FeatureDefinitionMagicAffinityBuilder
+                    .Create($"MagicAffinity{Name}PrimalBlessingSlots")
+                    .SetGuiPresentationNoContent(true)
+                    .SetAdditionalSlots(
+                        new AdditionalSlotsDuplet { slotLevel = 1, slotsNumber = 3 },
+                        new AdditionalSlotsDuplet { slotLevel = 2, slotsNumber = 2 },
+                        new AdditionalSlotsDuplet { slotLevel = 3, slotsNumber = 2 },
+                        new AdditionalSlotsDuplet { slotLevel = 4, slotsNumber = 2 },
+                        new AdditionalSlotsDuplet { slotLevel = 5, slotsNumber = 2 },
+                        new AdditionalSlotsDuplet { slotLevel = 6, slotsNumber = 2 },
+                        new AdditionalSlotsDuplet { slotLevel = 7, slotsNumber = 2 },
+                        new AdditionalSlotsDuplet { slotLevel = 8, slotsNumber = 2 },
+                        new AdditionalSlotsDuplet { slotLevel = 9, slotsNumber = 2 })
+                    .AddToDB())
+            .AddToDB();
+
+        //
         // LEVEL 06 - Enhanced Bond
         //
 
@@ -446,7 +508,7 @@ public sealed class CircleOfTheWildfire : AbstractSubclass
         Subclass = CharacterSubclassDefinitionBuilder
             .Create(Name)
             .SetGuiPresentation(Category.Subclass, Sprites.GetSprite(Name, Resources.CircleOfTheWildfire, 256))
-            .AddFeaturesAtLevel(2, autoPreparedSpellsWildfire, featureSetSummonSpirit)
+            .AddFeaturesAtLevel(2, autoPreparedSpellsWildfire, featureSetSummonSpirit, featureSetMartialProwess, featureSetPrimalBlessing)
             .AddFeaturesAtLevel(6, featureEnhancedBond)
             .AddFeaturesAtLevel(10, featureSetCauterizingFlames)
             .AddFeaturesAtLevel(14, powerBlazingRevival)
