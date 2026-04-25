@@ -144,7 +144,8 @@ public sealed class CircleOfTheWildfire : AbstractSubclass
             .SetEffectDescription(
                 EffectDescriptionBuilder
                     .Create()
-                    .SetTargetingData(Side.All, RangeType.Distance, 3, TargetType.Position)
+                    .SetTargetingData(Side.All, RangeType.Distance, 6, TargetType.Position,
+                        requireVisibility: false)
                     .InviteOptionalAlly()
                     .SetSavingThrowData(true, AttributeDefinitions.Wisdom, false,
                         EffectDifficultyClassComputation.SpellCastingFeature)
@@ -226,6 +227,12 @@ public sealed class CircleOfTheWildfire : AbstractSubclass
                     .SetSilent(Silent.WhenAddedOrRemoved)
                     .SetAmountOrigin(ExtraOriginOfAmount.SourceClassLevel, DruidClass)
                     .SetFeatures(hpBonus, hpBonus, hpBonus, hpBonus, hpBonus)
+                    .AddToDB(),
+                ConditionDefinitionBuilder
+                    .Create($"Condition{Name}SpiritDruidLevel")
+                    .SetGuiPresentationNoContent(true)
+                    .SetSilent(Silent.WhenAddedOrRemoved)
+                    .SetAmountOrigin(ExtraOriginOfAmount.SourceClassLevel, DruidClass)
                     .AddToDB())
             .AddToDB();
 
@@ -246,6 +253,29 @@ public sealed class CircleOfTheWildfire : AbstractSubclass
         attackWildfireSpirit.proximity = AttackProximity.Range;
         attackWildfireSpirit.maxRange = 12;
         attackWildfireSpirit.closeRange = 12;
+
+        // Thorn Whip power for the spirit
+        // Replicates ThornyVines (UB's Thorn Whip) — 30ft range, piercing damage, 10ft pull
+        // Damage scales with druid level: 1d6 (1-4), 2d6 (5-10), 3d6 (11-16), 4d6 (17+)
+        // Uses spirit's spell attack modifier (= druid's Wisdom + proficiency bonus)
+        // Scaling is driven by CustomBehaviorSpiritThornWhip reading the druid level condition
+        var powerSpiritThornWhip = FeatureDefinitionPowerBuilder
+            .Create($"Power{Name}SpiritThornWhip")
+            .SetGuiPresentation("Spell/&ThornyVinesTitle", "Spell/&ThornyVinesDescription",
+                Sprites.GetSprite("ThornyVines", Resources.ThornyVines, 128))
+            .SetUsesFixed(ActivationTime.Action)
+            .SetShowCasting(true)
+            .SetEffectDescription(
+                EffectDescriptionBuilder
+                    .Create()
+                    .SetTargetingData(Side.Enemy, RangeType.Distance, 6, TargetType.IndividualsUnique)
+                    .SetEffectForms(
+                        EffectFormBuilder.DamageForm(DamageTypePiercing, 1, DieType.D6),
+                        EffectFormBuilder.MotionForm(MotionForm.MotionType.DragToOrigin, 2))
+                    .SetParticleEffectParameters(VenomousSpike)
+                    .Build())
+            .AddCustomSubFeatures(new CustomBehaviorSpiritThornWhip())
+            .AddToDB();
 
         var monsterDefinitionSpirit = MonsterDefinitionBuilder
             .Create(MonsterDefinitions.Fire_Elemental, "WildfireSpirit")
@@ -276,6 +306,7 @@ public sealed class CircleOfTheWildfire : AbstractSubclass
             .SetFeatures(
                 actionAffinitySpirit,
                 powerSpiritTeleport,
+                powerSpiritThornWhip,
                 FeatureDefinitionMoveModes.MoveModeMove6,
                 FeatureDefinitionMoveModes.MoveModeFly6,
                 FeatureDefinitionDamageAffinitys.DamageAffinityFireImmunity,
@@ -1016,6 +1047,52 @@ public sealed class CircleOfTheWildfire : AbstractSubclass
 
                 defender.MyExecuteActionStabilizeAndStandUp(hitPoints);
             }
+        }
+    }
+
+    //
+    // Spirit Thorn Whip
+    //
+
+    // Scales Thorn Whip damage dice based on summoning druid's level.
+    // Reads the ConditionSpiritDruidLevel amount set by summoningAffinitySpirit.
+    // 1d6 at levels 1-4, 2d6 at 5-10, 3d6 at 11-16, 4d6 at 17+
+    private sealed class CustomBehaviorSpiritThornWhip : IModifyEffectDescription
+    {
+        public bool IsValid(BaseDefinition definition, RulesetCharacter character,
+            EffectDescription effectDescription)
+        {
+            return definition is FeatureDefinitionPower { Name: $"Power{Name}SpiritThornWhip" };
+        }
+
+        public EffectDescription GetEffectDescription(BaseDefinition definition,
+            EffectDescription effectDescription, RulesetCharacter character, RulesetEffect rulesetEffect)
+        {
+            var druidLevel = 1;
+
+            if (character.TryGetConditionOfCategoryAndType(
+                    AttributeDefinitions.TagConjure,
+                    $"Condition{Name}SpiritDruidLevel",
+                    out var condition))
+            {
+                druidLevel = condition.Amount;
+            }
+
+            var diceNumber = druidLevel switch
+            {
+                >= 17 => 4,
+                >= 11 => 3,
+                >= 5 => 2,
+                _ => 1
+            };
+
+            var damageForm = effectDescription.FindFirstDamageForm();
+            if (damageForm != null)
+            {
+                damageForm.diceNumber = diceNumber;
+            }
+
+            return effectDescription;
         }
     }
 }
