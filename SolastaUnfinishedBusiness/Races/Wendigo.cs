@@ -102,7 +102,7 @@ internal static class RaceWendigoBuilder
                 proficiencyWendigoLanguages)
             .AddToDB();
 
-        RacesContext.RaceScaleMap[raceWendigo] = 7.8f / 6.4f;
+        RacesContext.RaceScaleMap[raceWendigo] = 5.82f / 6.4f;
 
         return raceWendigo;
     }

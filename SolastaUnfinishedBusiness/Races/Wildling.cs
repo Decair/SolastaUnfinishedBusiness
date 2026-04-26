@@ -125,6 +125,8 @@ internal static class RaceWildlingBuilder
         racePresentation.femaleHornsOptions.AddRange(
             CharacterRaceDefinitions.Tiefling.RacePresentation.femaleHornsOptions);
 
+        RacesContext.RaceScaleMap[raceWildling] = 6.08f / 6.4f;
+
         return raceWildling;
     }
 }
