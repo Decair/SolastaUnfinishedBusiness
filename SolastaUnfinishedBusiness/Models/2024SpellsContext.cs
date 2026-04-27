@@ -144,6 +144,7 @@ public static partial class Tabletop2024Context
         {
             Barkskin.requiresConcentration = false;
             Barkskin.castingTime = ActivationTime.BonusAction;
+            Barkskin.EffectDescription.DurationParameter = 8;
             AttributeModifierBarkskin.modifierValue = 17;
             Barkskin.GuiPresentation.description = "Spell/&BarkskinOneDndDescription";
             ConditionBarkskin.GuiPresentation.description = "Rules/&ConditionOneDndBarkskinDescription";
@@ -152,6 +153,7 @@ public static partial class Tabletop2024Context
         {
             Barkskin.requiresConcentration = true;
             Barkskin.castingTime = ActivationTime.Action;
+            Barkskin.EffectDescription.DurationParameter = 8;
             AttributeModifierBarkskin.modifierValue = 16;
             Barkskin.GuiPresentation.description = "Spell/&BarkskinDescription";
             ConditionBarkskin.GuiPresentation.description = "Rules/&ConditionBarkskinDescription";
