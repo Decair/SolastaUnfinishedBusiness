@@ -122,7 +122,7 @@ public sealed class CircleOfTheWildfire : AbstractSubclass
             .SetEffectDescription(
                 EffectDescriptionBuilder
                     .Create()
-                    .SetTargetingData(Side.All, RangeType.Distance, 6, TargetType.IndividualsUnique)
+                    .SetTargetingData(Side.All, RangeType.Distance, 11, TargetType.IndividualsUnique)
                     .SetSavingThrowData(false, AttributeDefinitions.Dexterity, false,
                         EffectDifficultyClassComputation.SpellCastingFeature)
                     .SetEffectForms(
@@ -144,7 +144,7 @@ public sealed class CircleOfTheWildfire : AbstractSubclass
             .SetEffectDescription(
                 EffectDescriptionBuilder
                     .Create()
-                    .SetTargetingData(Side.All, RangeType.Distance, 6, TargetType.Position,
+                    .SetTargetingData(Side.All, RangeType.Distance, 8, TargetType.Position,
                         requireVisibility: false)
                     .InviteOptionalAlly()
                     .SetSavingThrowData(true, AttributeDefinitions.Wisdom, false,
