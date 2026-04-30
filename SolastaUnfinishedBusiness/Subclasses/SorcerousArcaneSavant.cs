@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using SolastaUnfinishedBusiness.Api.GameExtensions;
-using SolastaUnfinishedBusiness.Behaviors;
 using SolastaUnfinishedBusiness.Behaviors.Specific;
 using SolastaUnfinishedBusiness.Builders;
 using SolastaUnfinishedBusiness.Builders.Features;
@@ -15,6 +14,7 @@ using static SolastaUnfinishedBusiness.Models.SpellsContext;
 using static RuleDefinitions;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.FeatureDefinitionActionAffinitys;
+using static SolastaUnfinishedBusiness.Api.DatabaseHelper.FeatureDefinitionAttributeModifiers;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.FeatureDefinitionPowers;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.SpellDefinitions;
 
@@ -164,15 +164,15 @@ public sealed class SorcerousArcaneSavant : AbstractSubclass
         // ---------------------------------------------------------------------
 
         // +4 flat sorcery points bonus
-        var featureResurgentSorceryPoints = FeatureDefinitionBuilder
-            .Create($"Feature{Name}ResurgentSorceryPoints")
+        // Uses AttributeModifier pattern (same as Metamagic Adept feat) rather than
+        // ModifyPowerPoolAmount, since sorcery points are an attribute not a power pool
+        var featureResurgentSorceryPoints = FeatureDefinitionAttributeModifierBuilder
+            .Create(AttributeModifierSorcererSorceryPointsBase, $"AttributeModifier{Name}ResurgentSorceryPoints")
             .SetGuiPresentationNoContent(true)
-            .AddCustomSubFeatures(new ModifyPowerPoolAmount
-            {
-                PowerPool = PowerSorcererManaPainterTap,
-                Type = PowerPoolBonusCalculationType.Fixed,
-                Value = 4
-            })
+            .SetModifier(
+                AttributeModifierOperation.Additive,
+                AttributeDefinitions.SorceryPoints,
+                4)
             .AddToDB();
 
         // Clone PowerSorcererManaPainterTap as the base for the short-rest recovery power.
