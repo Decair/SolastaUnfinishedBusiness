@@ -865,12 +865,6 @@ public sealed class CircleOfTheWildfire : AbstractSubclass
                 yield break;
             }
 
-            if (rulesetEffect.EffectDescription.TargetType is TargetType.Individuals or TargetType.IndividualsUnique &&
-                !firstTarget)
-            {
-                yield break;
-            }
-
             var fireDamageForm = actualEffectForms.FirstOrDefault(x =>
                 x.FormType == EffectForm.EffectFormType.Damage &&
                 x.DamageForm.DamageType == DamageTypeFire);
