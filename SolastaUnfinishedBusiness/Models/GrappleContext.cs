@@ -416,8 +416,9 @@ internal static class GrappleContext
         var hero = character.RulesetCharacter.GetOriginalHero();
 
         if (hero != null &&
-            // only Astral Reach grants reach on unarmed
-            hero.FeaturesByType<FeatureDefinition>().Any(x => x.Name == AstralReach.AstralReachFeatureName))
+            // both Astral Reach and Wendigo grant reach on unarmed
+            (hero.FeaturesByType<FeatureDefinition>().Any(x => x.Name == AstralReach.AstralReachFeatureName) ||
+             hero.FeaturesByType<FeatureDefinition>().Any(x => x.Name == "FeatureWendigoNaturalLunger")))
         {
             return 2;
         }
